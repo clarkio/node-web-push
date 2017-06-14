@@ -91,6 +91,11 @@ app.post('/push', function (req, res) {
   }
 });
 
+app.get('/ping', function (req, res){
+    console.log('API is up and running');
+    res.send(runningMessage);
+});
+
 app.listen(port, function () {
   log(runningMessage);
 });
