@@ -2,7 +2,7 @@
   "name": "node-web-push",
   "version": "1.0.0",
   "description": "An example Node.js server using Web Push",
-  "main": "index.js",
+  "main": "server.js",
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
