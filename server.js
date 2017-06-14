@@ -66,34 +66,40 @@ app.post('/push', function (req, res) {
       pushSubscription instanceof String) &&
     pushSubscription.toLocaleLowerCase() === 'all'
   ) {
-    subscriptions.map((subscription, index) => {
-      log('Sending notification to subscription:', subscription);
-      var jsonSub = JSON.parse(subscription);
-      
-      webPush.sendNotification(jsonSub, notificationMessage)
-        .then(success => {
-          res.send('Push notification published successfully');
-        })
-        .catch(error => {
-          log(error);
-        });
-    });
+    if (subscriptions.length > 0) {
+      subscriptions.map((subscription, index) => {
+        log('Sending notification to subscription:', subscription);
+        var jsonSub = JSON.parse(subscription);
+
+        webPush.sendNotification(jsonSub, notificationMessage)
+          .then(success => {
+            res.send('Push notification published successfully');
+          })
+          .catch(error => {
+            log(error);
+            res.status(400).send(error);
+          });
+      });
+    } else {
+      res.send('There are currently no subscribed clients to notify');
+    }
   } else {
     log('Sending notification to subscription:', pushSubscription);
-    
+
     webPush.sendNotification(pushSubscription, notificationMessage)
       .then(success => {
         res.send('Push notification published successfully');
       })
       .catch(error => {
         log(error);
+        res.status(400).send(error);
       });
   }
 });
 
-app.get('/ping', function (req, res){
-    console.log('API is up and running');
-    res.send(runningMessage);
+app.get('/ping', function (req, res) {
+  console.log('API is up and running');
+  res.send(runningMessage);
 });
 
 app.listen(port, function () {
