@@ -4,6 +4,9 @@
   "description": "An example Node.js server using Web Push",
   "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "lodash": "^4.17.4",
     "web-push": "^3.2.2"
   },
   "devDependencies": {},
