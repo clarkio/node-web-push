@@ -86,7 +86,7 @@ app.post('/push', function (req, res) {
   } else {
     log('Sending notification to subscription:', pushSubscription);
 
-    webPush.sendNotification(pushSubscription, notificationMessage)
+    webPush.sendNotification(JSON.parse(pushSubscription), notificationMessage)
       .then(success => {
         res.send('Push notification published successfully');
       })
