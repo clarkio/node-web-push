@@ -9,13 +9,11 @@ const port = process.env.PORT || 8626;
 const runningMessage = 'Server is running on port ' + port;
 
 // TODO: use a key/value vault
-// VAPID keys should only be generated only once.
+// VAPID keys should only be generated once.
 let vapidKeys = {
   publicKey: process.env.VAPID_PUBLIC_KEY,
   privateKey: process.env.VAPID_PRIVATE_KEY
 };
-console.log('VAPID_PUBLIC_KEY', vapidKeys.publicKey);
-console.log('***ENV***', process.env);
 
 if (vapidKeys === undefined) {
   vapidKeys = webPush.generateVAPIDKeys();
