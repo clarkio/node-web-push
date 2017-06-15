@@ -8,8 +8,9 @@ const app = express();
 const port = process.env.PORT || 8626;
 const runningMessage = 'Server is running on port ' + port;
 
+// TODO: use a key/value vault
 // VAPID keys should only be generated only once.
-var vapidKeys = {
+let vapidKeys = {
   publicKey:
   'BNKV7LJ5IFajn46I7FWroeSCMKtyOQPAGguMCn_-mVfyVjr_pvvQn0lW_KMoOAMqEAd4qhFHZhG6GEsDTPSJJ8I',
   privateKey: 'XeVUm1IwTLWPz0ViqFpDeRTLSZ1mbnn2m8F_Az3qkH8'
@@ -18,16 +19,17 @@ if (vapidKeys === undefined) {
   vapidKeys = webPush.generateVAPIDKeys();
 }
 
+// TODO: replace email with variable
 webPush.setVapidDetails(
   'mailto:brian@clarkio.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
 
-var subscriptions = [];
+let subscriptions = [];
 
 app.use(bodyParser.json());
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header(
     'Access-Control-Allow-Headers',
@@ -36,9 +38,9 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.post('/subscribe', function (req, res) {
+app.post('/subscribe', (req, res) => {
   const body = JSON.stringify(req.body);
-  var sendMessage;
+  let sendMessage;
   if (_.includes(subscriptions, body)) {
     log('Subscription already stored');
     sendMessage = 'Subscription already stored';
@@ -48,10 +50,9 @@ app.post('/subscribe', function (req, res) {
     sendMessage = 'Subscription stored';
   }
   res.send(sendMessage);
-
 });
 
-app.post('/push', function (req, res) {
+app.post('/push', (req, res) => {
   log('Body', req.body);
   // req.body.subscription
   // req.body.notificationMessage
@@ -66,15 +67,13 @@ app.post('/push', function (req, res) {
       pushSubscription instanceof String) &&
     pushSubscription.toLocaleLowerCase() === 'all'
   ) {
-    if (subscriptions.length > 0) {
+    if (subscriptions.length) {
       subscriptions.map((subscription, index) => {
         log('Sending notification to subscription:', subscription);
-        var jsonSub = JSON.parse(subscription);
+        let jsonSub = JSON.parse(subscription);
 
         webPush.sendNotification(jsonSub, notificationMessage)
-          .then(success => {
-            res.send('Push notification published successfully');
-          })
+          .then(success => res.send('Push notification published successfully'))
           .catch(error => {
             log(error);
             res.status(400).send(error);
@@ -87,9 +86,7 @@ app.post('/push', function (req, res) {
     log('Sending notification to subscription:', pushSubscription);
 
     webPush.sendNotification(JSON.parse(pushSubscription), notificationMessage)
-      .then(success => {
-        res.send('Push notification published successfully');
-      })
+      .then(success => res.send('Push notification published successfully')})
       .catch(error => {
         log(error);
         res.status(400).send(error);
@@ -97,11 +94,9 @@ app.post('/push', function (req, res) {
   }
 });
 
-app.get('/ping', function (req, res) {
+app.get('/ping', (req, res) => {
   console.log('API is up and running');
   res.send(runningMessage);
 });
 
-app.listen(port, function () {
-  log(runningMessage);
-});
+app.listen(port, () => log(runningMessage)});
