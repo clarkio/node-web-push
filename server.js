@@ -86,7 +86,7 @@ app.post('/push', (req, res) => {
     log('Sending notification to subscription:', pushSubscription);
 
     webPush.sendNotification(JSON.parse(pushSubscription), notificationMessage)
-      .then(success => res.send('Push notification published successfully')})
+      .then(success => res.send('Push notification published successfully'))
       .catch(error => {
         log(error);
         res.status(400).send(error);
@@ -99,4 +99,4 @@ app.get('/ping', (req, res) => {
   res.send(runningMessage);
 });
 
-app.listen(port, () => log(runningMessage)});
+app.listen(port, () => log(runningMessage));
