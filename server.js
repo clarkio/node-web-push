@@ -14,6 +14,8 @@ let vapidKeys = {
   publicKey: process.env.VAPID_PUBLIC_KEY,
   privateKey: process.env.VAPID_PRIVATE_KEY
 };
+console.log('VAPID_PUBLIC_KEY', vapidKeys.publicKey);
+
 if (vapidKeys === undefined) {
   vapidKeys = webPush.generateVAPIDKeys();
 }
