@@ -11,9 +11,8 @@ const runningMessage = 'Server is running on port ' + port;
 // TODO: use a key/value vault
 // VAPID keys should only be generated only once.
 let vapidKeys = {
-  publicKey:
-  'BNKV7LJ5IFajn46I7FWroeSCMKtyOQPAGguMCn_-mVfyVjr_pvvQn0lW_KMoOAMqEAd4qhFHZhG6GEsDTPSJJ8I',
-  privateKey: 'XeVUm1IwTLWPz0ViqFpDeRTLSZ1mbnn2m8F_Az3qkH8'
+  publicKey: process.env.VAPID_PUBLIC_KEY,
+  privateKey: process.env.VAPID_PRIVATE_KEY
 };
 if (vapidKeys === undefined) {
   vapidKeys = webPush.generateVAPIDKeys();
