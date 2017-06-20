@@ -2,6 +2,7 @@ const express = require('express');
 const webPush = require('web-push');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const constants = require('./constants');
 const log = console.log;
 
 const app = express();
@@ -42,60 +43,88 @@ app.post('/subscribe', (req, res) => {
   const body = JSON.stringify(req.body);
   let sendMessage;
   if (_.includes(subscriptions, body)) {
-    log('Subscription already stored');
-    sendMessage = 'Subscription already stored';
+    log(constants.messages.SUBSCRIPTION_ALREADY_STORED);
+    sendMessage = constants.messages.SUBSCRIPTION_ALREADY_STORED;
   } else {
     subscriptions.push(body);
-    log('Updated subscriptions:', subscriptions);
-    sendMessage = 'Subscription stored';
+    log(constants.messages.UPDATED_SUBSCRIPTIONS, subscriptions);
+    sendMessage = constants.messages.SUBSCRIPTION_STORED;
   }
   res.send(sendMessage);
 });
 
-app.post('/push', (req, res) => {
-  log('Body', req.body);
-  // req.body.subscription
-  // req.body.notificationMessage
+app.post('/push', (req, res, next) => {
   const pushSubscription = req.body.pushSubscription;
   const notificationMessage = req.body.notificationMessage;
+  let errors = [];
+  let successes = [];
   log('Current subscriptions found', subscriptions);
-  log('Notification message:', notificationMessage);
+  log('Notification message received:', notificationMessage);
 
-  if (
-    pushSubscription &&
-    (typeof pushSubscription === 'string' ||
-      pushSubscription instanceof String) &&
-    pushSubscription.toLocaleLowerCase() === 'all'
-  ) {
+  if (!pushSubscription) {
+    res.status(400).send(constants.errors.ERROR_SUBSCRIPTION_REQUIRED);
+    return next();
+  }
+
+  if ((typeof pushSubscription === 'string' || pushSubscription instanceof String) &&
+    pushSubscription.toLocaleLowerCase() === 'all') {
     if (subscriptions.length) {
       subscriptions.map((subscription, index) => {
-        log('Sending notification to subscription:', subscription);
+        log(constants.messages.SENDING_NOTIFICATION_MESSAGE, subscription);
         let jsonSub = JSON.parse(subscription);
 
         webPush.sendNotification(jsonSub, notificationMessage)
-          .then(success => res.send('Push notification published successfully'))
+          .then(success => {
+            return handleSuccess(success, index);
+          })
           .catch(error => {
-            log(error);
-            res.status(400).send(error);
+            return handleError(error, index);
           });
       });
     } else {
-      res.send('There are currently no subscribed clients to notify');
+      res.send(constants.messages.NO_SUBSCRIBERS_MESSAGE);
+      return next();
     }
   } else {
-    log('Sending notification to subscription:', pushSubscription);
+    let subscription = JSON.parse(pushSubscription);
+    log(constants.messages.SENDING_NOTIFICATION_MESSAGE, pushSubscription);
 
-    webPush.sendNotification(JSON.parse(pushSubscription), notificationMessage)
-      .then(success => res.send('Push notification published successfully'))
+    webPush.sendNotification(subscription, notificationMessage)
+      .then(success => {
+        return handleSuccess(success, -1);
+      })
       .catch(error => {
-        log(error);
-        res.status(400).send(error);
+        return handleError(error, -1);
       });
+  }
+
+  function handleSuccess(success, index) {
+    successes.push(constants.messages.SINGLE_PUBLISH_SUCCESS_MESSAGE + success);
+    if (index === subscriptions.length || subscriptions.length === 0 || index === -1) {
+      checkNotificationResults();
+    }
+  }
+
+  function handleError(error) {
+    log(error);
+    errors.push(error);
+    if (index === subscriptions.length || subscriptions.length === 0) {
+      checkNotificationResults();
+    }
+  }
+
+  function checkNotificationResults() {
+    if (errors.length === 0) {
+      res.send(constants.messages.MULTIPLE_PUBLISH_SUCCESS_MESSAGE);
+    } else {
+      res.status(500).send(constants.errors.ERROR_MULTIPLE_PUBLISH);
+    }
+    return next();
   }
 });
 
 app.get('/ping', (req, res) => {
-  console.log('API is up and running');
+  log('API is up and running');
   res.send(runningMessage);
 });
 
