@@ -86,7 +86,13 @@ app.post('/push', (req, res, next) => {
       return next();
     }
   } else {
-    let subscription = JSON.parse(pushSubscription);
+    let subscription
+    try { 
+      subscription = JSON.parse(pushSubscription);
+    } catch(error) {
+      return handleError(error, -1);
+    }
+
     log(constants.messages.SENDING_NOTIFICATION_MESSAGE, pushSubscription);
 
     webPush.sendNotification(subscription, notificationMessage)
@@ -100,16 +106,16 @@ app.post('/push', (req, res, next) => {
 
   function handleSuccess(success, index) {
     successes.push(constants.messages.SINGLE_PUBLISH_SUCCESS_MESSAGE + success);
-    if (index === subscriptions.length || subscriptions.length === 0 || index === -1) {
-      checkNotificationResults();
+    if (index === subscriptions.length - 1 || subscriptions.length === 0 || index === -1) {
+      return checkNotificationResults();
     }
   }
 
-  function handleError(error) {
+  function handleError(error, index) {
     log(error);
     errors.push(error);
-    if (index === subscriptions.length || subscriptions.length === 0) {
-      checkNotificationResults();
+    if (index === subscriptions.length - 1 || subscriptions.length === 0) {
+      return checkNotificationResults();
     }
   }
 
