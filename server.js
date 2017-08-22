@@ -128,7 +128,7 @@ app.post('/push', (req, res, next) => {
   }
 });
 
-app.get('/ping', (req, res) => {
+app.get('/', (req, res) => {
   log('API is up and running');
   res.send(runningMessage);
 });
