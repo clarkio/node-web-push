@@ -1,33 +1,38 @@
+// Pull in dependencies
 const express = require('express');
 const webPush = require('web-push');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
-const constants = require('./constants');
-const log = console.log;
 
+// Server settings with ExpressJS
 const app = express();
 const port = process.env.PORT || 3000;
 const runningMessage = 'Server is running on port ' + port;
 
-// TODO: use a key/value vault
+// Set up custom dependencies
+const constants = require('./constants');
+const log = console.log;
+
 // VAPID keys should only be generated once.
+// use `web-push generate-vapid-keys --json` to generate in terminal
+// then export them in your shell with the follow env key names
 let vapidKeys = {
   publicKey: process.env.VAPID_PUBLIC_KEY,
   privateKey: process.env.VAPID_PRIVATE_KEY
 };
 
-if (vapidKeys === undefined) {
-  vapidKeys = webPush.generateVAPIDKeys();
-}
-
+// Tell web push about our application server
 webPush.setVapidDetails(
   'mailto:email@domain.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
 
+// Store subscribers in memory
 let subscriptions = [];
 
+// Set up CORS and allow any host for now to test things out
+// WARNING! Don't use `*` in production unless you intend to allow all hosts
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -38,6 +43,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Allow clients to subscribe to this application server for notifications
 app.post('/subscribe', (req, res) => {
   const body = JSON.stringify(req.body);
   let sendMessage;
@@ -52,6 +58,7 @@ app.post('/subscribe', (req, res) => {
   res.send(sendMessage);
 });
 
+// Allow host to trigger push notifications from the application server
 app.post('/push', (req, res, next) => {
   const pushSubscription = req.body.pushSubscription;
   const notificationMessage = req.body.notificationMessage;
