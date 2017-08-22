@@ -6,7 +6,7 @@ const constants = require('./constants');
 const log = console.log;
 
 const app = express();
-const port = process.env.PORT || 8626;
+const port = process.env.PORT || 3000;
 const runningMessage = 'Server is running on port ' + port;
 
 // TODO: use a key/value vault
@@ -20,9 +20,8 @@ if (vapidKeys === undefined) {
   vapidKeys = webPush.generateVAPIDKeys();
 }
 
-// TODO: replace email with variable
 webPush.setVapidDetails(
-  'mailto:brian@clarkio.com',
+  'mailto:email@domain.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -37,49 +36,6 @@ app.use((req, res, next) => {
     'Origin, X-Requested-With, Content-Type, Accept'
   );
   next();
-});
-
-const twilioSettings = {
-  accountSid: process.env.TWILIO_ACCOUNT_SID,
-  authToken: process.env.TWILIO_AUTH_TOKEN,
-  phone: process.env.TWILIO_PHONE
-};
-
-app.post('/messages', (req, res, next) => {
-  try {
-    const twilio = require('twilio');
-    const client = twilio(twilioSettings.accountSid, twilioSettings.authToken);
-
-    var msg = {
-      from: twilioSettings.phone,
-      to: req.body.phone,
-      body: req.body.body
-    };
-    console.log('sending', msg);
-    client.messages
-      .create(msg)
-      .then(data => {
-        if (req.xhr) {
-          res.setHeader('Content-Type', 'application/json');
-          res.send(JSON.stringify({ result: 'success' }));
-        } else {
-          res.redirect('/messages/' + msg.phone + '#' + data.sid);
-        }
-      })
-      .catch(err => {
-        if (req.xhr) {
-          res.setHeader('Content-Type', 'application/json');
-          res.status(err.status).send(JSON.stringify(err));
-        } else {
-          res.redirect(req.header('Referer') || '/');
-        }
-      });
-  } catch (error) {
-    const msg = 'twilio failed, but that\'s ok. We\'ll move along';
-    console.log(msg);
-    res.status(500).send(msg);
-  }
-  return next();
 });
 
 app.post('/subscribe', (req, res) => {
