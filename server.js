@@ -22,11 +22,7 @@ let vapidKeys = {
 };
 
 // Tell web push about our application server
-webPush.setVapidDetails(
-  'mailto:email@domain.com',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+webPush.setVapidDetails('mailto:email@domain.com', vapidKeys.publicKey, vapidKeys.privateKey);
 
 // Store subscribers in memory
 let subscriptions = [];
@@ -36,11 +32,8 @@ let subscriptions = [];
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
-  );
-  next();
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  return next();
 });
 
 // Allow clients to subscribe to this application server for notifications
@@ -64,7 +57,7 @@ app.post('/push', (req, res, next) => {
 
   if (!pushSubscription) {
     res.status(400).send(constants.errors.ERROR_SUBSCRIPTION_REQUIRED);
-    return next();
+    return next(false);
   }
 
   if (subscriptions.length) {
@@ -72,23 +65,24 @@ app.post('/push', (req, res, next) => {
       let jsonSub = JSON.parse(subscription);
 
       // Use the web-push library to send the notification message to subscribers
-      webPush.sendNotification(jsonSub, notificationMessage)
+      webPush
+        .sendNotification(jsonSub, notificationMessage)
         .then(success => handleSuccess(success, index))
         .catch(error => handleError(error, index));
     });
   } else {
     res.send(constants.messages.NO_SUBSCRIBERS_MESSAGE);
-    return next();
+    return next(false);
   }
 
   function handleSuccess(success, index) {
     res.send(constants.messages.SINGLE_PUBLISH_SUCCESS_MESSAGE);
-    return next();    
+    return next(false);
   }
 
   function handleError(error, index) {
     res.status(500).send(constants.errors.ERROR_MULTIPLE_PUBLISH);
-    return next();    
+    return next(false);
   }
 });
 
