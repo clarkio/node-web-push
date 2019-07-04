@@ -8,13 +8,14 @@
     "express": "^4.16.0",
     "lodash": "^4.17.5",
     "twilio": "^3.17.1",
-    "web-push": "^3.2.2"
+    "web-push": "^3.2.2",
+    "snyk": "^1.189.0"
   },
-  "devDependencies": {
-    "snyk": "^1.118.1"
-  },
+  "devDependencies": {},
   "scripts": {
-    "test": "snyk test"
+    "test": "snyk test",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -31,5 +32,6 @@
   "bugs": {
     "url": "https://github.com/clarkio/node-web-push/issues"
   },
-  "homepage": "https://github.com/clarkio/node-web-push#readme"
+  "homepage": "https://github.com/clarkio/node-web-push#readme",
+  "snyk": true
 }
